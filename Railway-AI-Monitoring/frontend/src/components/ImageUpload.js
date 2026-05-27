@@ -1,158 +1,146 @@
+// frontend/src/components/ImageUpload.js
 import React, { useState } from 'react';
-import axios from 'axios';
-import './ImageUpload.css';
+import { uploadImage } from '../services/api';
 
-const ImageUpload = () => 
-    {
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [preview, setPreview] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [message, setMessage] = useState('');
+const ImageUpload = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(null);
 
-    const handleFileChange = (event) => 
-        {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) 
-        {
-            setSelectedFile(file);
-            setPreview(URL.createObjectURL(file));
-            setMessage('');
-        }
-        else 
-        {
-            setMessage('Пожалуйста, выберите изображение');
-            setSelectedFile(null);
-            setPreview(null);
-        }
-    };
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      setPreview(URL.createObjectURL(file));
+      setMessage('');
+      setAnalysisResult(null);
+    } else {
+      setMessage('Пожалуйста, выберите изображение');
+    }
+  };
 
-    const handleUpload = async () =>
-    {
-        if (!selectedFile)
-        {
-            setMessage('Выберите файл');
-            return;
-        }
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setMessage('Выберите файл для загрузки');
+      return;
+    }
 
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('objectType', 'person');
-        setUploading(true);
+    setUploading(true);
+    setMessage('');
+
+    try {
+      const response = await uploadImage(selectedFile);
+      
+      setMessage('✅ Файл успешно загружен и проанализирован!');
+      
+      if (response.analysis) {
+        setAnalysisResult(response.analysis);
+      }
+      
+      setTimeout(() => {
+        setSelectedFile(null);
+        setPreview(null);
         setMessage('');
+        setAnalysisResult(null);
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Ошибка:', error);
+      setMessage('❌ Ошибка при загрузке файла');
+    } finally {
+      setUploading(false);
+    }
+  };
 
-        try 
-        {
-            const response = await axios.post(
-                'http://172.20.10.6:9898/api/v1/media/upload/image',
-                formData
-                
-            );
-            setMessage('✅ Файл успешно загружен на сервер!');
-            console.log('Ответ сервера:', response.data);
-
-            setTimeout(() => 
-            {
-                setSelectedFile(null);  
-                setPreview(null);       
-                setMessage('');         
-            }, 2000);
-        } catch (error) 
-        {
-            console.error('Ошибка при загрузке:', error);
-            if (error.response) 
-            {
-                setMessage(`❌ Ошибка сервера: ${error.response.status} - ${error.response.data}`);
-            } else if (error.request) 
-            {
-                setMessage('❌ Сервер не отвечает. Убедитесь, что Spring Boot запущен на порту 8080');
-            } else 
-            {
-                setMessage(`❌ Ошибка: ${error.message}`);
-            }
-        } finally 
-        {
-            setUploading(false);
-        }
+  const getObjectTypeLabel = (type) => {
+    const types = {
+      person: '👤 Человек',
+      tree: '🌳 Дерево',
+      obstacle: '📦 Посторонний предмет',
+      vehicle: '🚗 Транспорт'
     };
+    return types[type] || '❓ Неизвестный объект';
+  };
 
-    const handleDragOver = (event) => 
-    {
-        event.preventDefault(); 
-    };
-
-    const handleDrop = (event) =>
-    {
-        event.preventDefault();
-
-        const file = event.dataTransfer.files[0];
-
-        if(file && file.type.startsWith('image/')) 
-        {
-            setSelectedFile(file);
-            setPreview(URL.createObjectURL(file));
-            setMessage('');
-        } else
-        {
-            setMessage('Пожалуйста, перетащите изображение');
-        }
-    };
-
-    return( 
-        <div className="upload-container">
-            <h2>Загрузка изображений для ИИ</h2>
-
-            <div
-                className='upload-area'
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-            >
-
-            <input
-                type='file'
-                accept='image/*'
-                onChange={handleFileChange}
-                id='file-input'
-                className='file-input'
-            />
-
-            <label htmlFor='file-input' className='file-label'>
-                📁 Выбрать изображение
-            </label>
-
-            {preview && (
-                <div className='preview-container'>
-                    <img
-                        src={preview}
-                        alt='Предпросмотр'
-                        className='preview-image'
-                    />
-                    <p>Выбран файл: {selectedFile?.name}</p>
-                    <p>Размер: {(selectedFile?.size / 1024).toFixed(2)} KB</p>
-                </div>
-            )}
-
-            <button
-                onClick={handleUpload}
-                disabled={!selectedFile || uploading}
-                className='upload-button'
-            >
-                {uploading ? '⏳ Загрузка...' : '📤 Загрузить на сервер'}
-            </button>
-
-            {message && (
-                <p className={uploading ? 'uploading-message' : 'message'}>
-                    {message}
-                </p>
-            )}
-
-            <div className='hint'>
-                Вы можете перетащить файл мышкой в эту область
-            </div>
+  return (
+    <div>
+      <div className="grid-4" style={{ marginBottom: '24px' }}>
+        <div className="kpi-card">
+          <div className="kpi-label">Загрузка изображений</div>
+          <div className="kpi-value" style={{ fontSize: '1rem' }}>JPG, PNG, GIF</div>
+          <div className="kpi-hint">Максимальный размер: 10MB</div>
         </div>
+        <div className="kpi-card">
+          <div className="kpi-label">Анализ нейросетью</div>
+          <div className="kpi-value" style={{ fontSize: '1rem' }}>YOLOv8</div>
+          <div className="kpi-hint">Детекция объектов на путях</div>
+        </div>
+      </div>
+      
+      <div className="section-card" style={{ textAlign: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+        <input 
+          type="file" 
+          accept="image/*" 
+          onChange={handleFileChange} 
+          id="file-input" 
+          style={{ display: 'none' }} 
+        />
+        <label htmlFor="file-input" className="btn" style={{ cursor: 'pointer', display: 'inline-block', marginBottom: '16px' }}>
+          📁 Выбрать изображение
+        </label>
+        
+        {preview && (
+          <div style={{ marginTop: '16px' }}>
+            <img src={preview} alt="Preview" style={{ maxWidth: '300px', borderRadius: '16px' }} />
+            <div className="section-subtitle" style={{ marginTop: '8px' }}>{selectedFile?.name}</div>
+          </div>
+        )}
+        
+        <button 
+          className="btn danger" 
+          onClick={handleUpload} 
+          disabled={!selectedFile || uploading} 
+          style={{ marginTop: '16px' }}
+        >
+          {uploading ? '⏳ Загрузка и анализ...' : '📤 Загрузить и проанализировать'}
+        </button>
+        
+        {message && (
+          <div style={{ 
+            marginTop: '16px', 
+            padding: '12px', 
+            borderRadius: '12px', 
+            background: message.includes('✅') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+            color: message.includes('✅') ? '#34d399' : '#f87171'
+          }}>
+            {message}
+          </div>
+        )}
+        
+        {analysisResult && (
+          <div style={{ marginTop: '16px', padding: '16px', background: '#1a2332', borderRadius: '16px', textAlign: 'left' }}>
+            <h4 style={{ marginBottom: '12px' }}>🔍 Результат анализа нейросети:</h4>
+            <div style={{ marginBottom: '8px' }}>
+              <span className="small-note">Обнаружено:</span>
+              <span style={{ marginLeft: '8px', fontWeight: 'bold' }}>{getObjectTypeLabel(analysisResult.objectType)}</span>
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <span className="small-note">Уверенность:</span>
+              <span style={{ marginLeft: '8px', fontWeight: 'bold', color: '#10b981' }}>{Math.round(analysisResult.confidence * 100)}%</span>
+            </div>
+            <div>
+              <span className={`badge ${analysisResult.severity}`}>
+                {analysisResult.severity === 'critical' ? 'Критично' : 'Требует внимания'}
+              </span>
+            </div>
+            <div className="subtle" style={{ marginTop: '8px' }}>{analysisResult.description}</div>
+          </div>
+        )}
+      </div>
     </div>
-    );
+  );
 };
 
 export default ImageUpload;
-
-
