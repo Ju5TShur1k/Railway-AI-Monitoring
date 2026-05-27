@@ -1,0 +1,21 @@
+/* Сброс стандартных отступов */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Стили для корневого контейнера App */
+.App {
+  text-align: center;
+  min-height: 100vh;                    /* Минимальная высота на весь экран */
+  background: linear-gradient(135deg, #272cc96b 0%, rgba(243, 13, 255, 0.467) 100%);
+  padding: 20px;
+}
+
+/* Медиа-запрос для адаптации под мобильные устройства */
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
+  }
+}

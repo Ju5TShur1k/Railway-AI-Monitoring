@@ -1,0 +1,161 @@
+/* Стили для контейнера всей страницы */
+.upload-container {
+  max-width: 700px;
+  margin: 50px auto;        /* Центрирование по горизонтали */
+  padding: 20px;
+  text-align: center;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Заголовок страницы */
+.upload-container h2 {
+  color: #000000;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+/* Область для загрузки файлов */
+.upload-area {
+  border: 3px dashed #151515;     /* Пунктирная граница */
+  border-radius: 15px;             /* Скругление углов */
+  padding: 50px 20px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;       /* Плавный переход при наведении */
+}
+
+/* Эффект при наведении на область загрузки */
+.upload-area:hover {
+  border-color: #45a049;
+  background: #f0f0f0;
+}
+
+/* Скрываем стандартный input для файлов */
+.file-input {
+  display: none;
+}
+
+/* Кастомная кнопка выбора файла */
+.file-label {
+  display: inline-block;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Эффект при наведении на кнопку выбора файла */
+.file-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Контейнер для предпросмотра изображения */
+.preview-container {
+  margin: 25px 0;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Стили для изображения предпросмотра */
+.preview-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  object-fit: cover;          /* Сохраняет пропорции изображения */
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* Информация о файле */
+.preview-container p {
+  margin: 10px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Кнопка загрузки */
+.upload-button {
+  padding: 12px 40px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+/* Эффект при наведении на активную кнопку */
+.upload-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Стиль для отключенной кнопки */
+.upload-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Сообщение об успехе */
+.message {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  font-weight: bold;
+  animation: fadeIn 0.5s ease;    /* Анимация появления */
+}
+
+/* Сообщение во время загрузки */
+.uploading-message {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;  /* Анимация пульсации */
+}
+
+/* Подсказка для пользователя */
+.hint {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Анимация появления сообщения */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Анимация пульсации во время загрузки */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
