@@ -7,36 +7,41 @@ const ObjectsList = ({ neuralDetections, openEvent }) => {
 
   const getObjectTypeInfo = (type) => {
     const types = {
-      person: { label: '👤 Человек', icon: '👤', risk: 'warning' },
-      tree: { label: '🌳 Дерево', icon: '🌳', risk: 'critical' },
-      obstacle: { label: '📦 Посторонний предмет', icon: '📦', risk: 'critical' },
-      vehicle: { label: '🚗 Транспорт', icon: '🚗', risk: 'warning' },
-      default: { label: '❓ Неизвестный объект', icon: '❓', risk: 'info' }
+      person: { label: '👤 Человек', icon: '👤', risk: 'warning', description: 'Человек в запретной зоне' },
+      tree: { label: '🌳 Дерево', icon: '🌳', risk: 'critical', description: 'Поваленное дерево на путях' },
+      obstacle: { label: '📦 Посторонний предмет', icon: '📦', risk: 'critical', description: 'Неизвестный предмет на рельсах' },
+      vehicle: { label: '🚗 Транспорт', icon: '🚗', risk: 'warning', description: 'Несанкционированный транспорт' },
+      default: { label: '❓ Неизвестный объект', icon: '❓', risk: 'info', description: 'Объект требует идентификации' }
     };
     return types[type] || types.default;
   };
 
   const filteredObjects = neuralDetections.filter(obj => {
-    const matchesSearch = obj.type.includes(searchTerm) || 
-                          obj.description.includes(searchTerm) || 
-                          obj.location.includes(searchTerm);
+    const typeInfo = getObjectTypeInfo(obj.type);
+    const matchesSearch = (obj.type && obj.type.includes(searchTerm)) || 
+                          (obj.description && obj.description.includes(searchTerm)) || 
+                          (obj.location && obj.location.includes(searchTerm)) ||
+                          (typeInfo.label && typeInfo.label.includes(searchTerm));
     const matchesRisk = filterRisk === 'all' || obj.severity === filterRisk;
     return matchesSearch && matchesRisk;
   });
 
   const handleOpenDetail = (detection) => {
+    const typeInfo = getObjectTypeInfo(detection.type);
+    
+    // Создаем полноценный объект события со всеми полями
     const eventFromDetection = {
       id: detection.id,
-      title: detection.description,
-      time: detection.timestamp,
-      camera: detection.location.split(',')[0] || 'Камера',
-      zone: detection.location.split(',')[1] || 'Зона',
-      status: detection.severity,
+      title: detection.description || typeInfo.description,
+      time: detection.timestamp || 'Время не указано',
+      camera: detection.location ? detection.location.split(',')[0] : 'Камера',
+      zone: detection.location ? (detection.location.split(',')[1] || 'Зона') : 'Зона',
+      status: detection.severity || 'warning',
       hasPhoto: true,
-      description: detection.description,
-      objectType: detection.type,
-      confidence: detection.confidence,
-      location: detection.location
+      description: detection.description || typeInfo.description,
+      objectType: detection.type || 'default',
+      confidence: detection.confidence || 0,
+      location: detection.location || 'Место не указано'
     };
     openEvent(eventFromDetection);
   };
@@ -46,7 +51,7 @@ const ObjectsList = ({ neuralDetections, openEvent }) => {
       <div className="filters">
         <input 
           className="filter-input" 
-          placeholder="Поиск объекта: тип / ID события / локация" 
+          placeholder="Поиск объекта: тип / локация" 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -80,14 +85,14 @@ const ObjectsList = ({ neuralDetections, openEvent }) => {
                 </div>
                 <div className="object-body">
                   <div className="object-title">OBJ-{obj.id} • {typeInfo.label}</div>
-                  <div className="small-note">{obj.timestamp}</div>
-                  <div className="small-note" style={{ marginTop: '4px' }}>📍 {obj.location}</div>
+                  <div className="small-note">{obj.timestamp || 'Время не указано'}</div>
+                  <div className="small-note" style={{ marginTop: '4px' }}>📍 {obj.location || 'Место не указано'}</div>
                   <div className="tags" style={{ marginTop: '8px' }}>
-                    <span className={`badge ${obj.severity}`}>
+                    <span className={`badge ${obj.severity || 'info'}`}>
                       {obj.severity === 'critical' ? 'Высокий риск' : obj.severity === 'warning' ? 'Средний риск' : 'Низкий риск'}
                     </span>
                     <span className="badge info">
-                      Уверенность: {Math.round(obj.confidence * 100)}%
+                      Уверенность: {obj.confidence ? Math.round(obj.confidence * 100) : 0}%
                     </span>
                   </div>
                   <button 

@@ -2,6 +2,7 @@
 import React from 'react';
 
 const EventDetail = ({ selectedEvent, setActiveTab }) => {
+  // Защита от пустого события
   if (!selectedEvent) {
     return (
       <div className="empty-state">
@@ -21,17 +22,26 @@ const EventDetail = ({ selectedEvent, setActiveTab }) => {
     return types[type] || types.default;
   };
 
+  // Безопасное получение данных с проверками
   const objectType = selectedEvent.objectType || selectedEvent.type || 'default';
   const objectInfo = getObjectTypeInfo(objectType);
-  const confidence = selectedEvent.confidence || 0;
+  
+  const confidence = selectedEvent.confidence !== undefined && !isNaN(selectedEvent.confidence) 
+    ? selectedEvent.confidence 
+    : 0;
   const confidencePercent = Math.round(confidence * 100);
+  
   const eventTime = selectedEvent.time || selectedEvent.timestamp || 'Не указано';
-  const eventLocation = selectedEvent.location || `${selectedEvent.camera || 'Не указано'} • ${selectedEvent.zone || 'Не указано'}`;
+  
+  const eventLocation = selectedEvent.location || 
+    (selectedEvent.camera && selectedEvent.zone ? `${selectedEvent.camera} • ${selectedEvent.zone}` : 'Не указано');
+  
   const eventStatus = selectedEvent.status || selectedEvent.severity || 'warning';
   const eventDescription = selectedEvent.description || objectInfo.description;
 
   return (
     <div className="two-col">
+      {/* Левая колонка - информация о событии */}
       <div className="panel">
         <h3>Что обнаружила нейросеть</h3>
         
@@ -45,7 +55,7 @@ const EventDetail = ({ selectedEvent, setActiveTab }) => {
 
         <div className="info-row mt16">
           <div className="small-note">Дата и время обнаружения</div>
-          <div className="info-value">{eventTime}</div>
+          <div className="info-value" style={{ fontWeight: 'bold' }}>{eventTime}</div>
         </div>
 
         <div className="info-row mt12">
@@ -64,14 +74,16 @@ const EventDetail = ({ selectedEvent, setActiveTab }) => {
           <div className="small-note">Уверенность нейросети</div>
           <div className="info-value" style={{ 
             color: confidencePercent > 85 ? '#10b981' : confidencePercent > 70 ? '#f59e0b' : '#ef4444',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            fontSize: '1.1rem'
           }}>
             {confidencePercent}%
           </div>
           <div className="subtle">
             {confidencePercent > 85 ? 'Высокая достоверность' : 
              confidencePercent > 70 ? 'Средняя достоверность, требуется подтверждение' : 
-             'Низкая достоверность, необходима проверка'}
+             confidencePercent > 0 ? 'Низкая достоверность, необходима проверка' : 
+             'Данные отсутствуют'}
           </div>
         </div>
 
@@ -87,6 +99,7 @@ const EventDetail = ({ selectedEvent, setActiveTab }) => {
         </div>
       </div>
 
+      {/* Правая колонка - визуальное подтверждение */}
       <div className="panel">
         <h3>Визуальное подтверждение</h3>
         
@@ -112,10 +125,10 @@ const EventDetail = ({ selectedEvent, setActiveTab }) => {
         <div className="mt12">
           <h4>Рекомендация</h4>
           <div className="subtle">
-            {objectType === 'person' && 'Отправить патруль для проверки личности нарушителя.'}
-            {objectType === 'tree' && 'Немедленно уведомить аварийную бригаду для расчистки путей.'}
-            {objectType === 'obstacle' && 'Проверить наличие постороннего предмета на путях.'}
-            {objectType === 'vehicle' && 'Проверить наличие несанкционированного транспорта.'}
+            {objectType === 'person' && '🚨 Отправить патруль для проверки личности нарушителя.'}
+            {objectType === 'tree' && '🚨 Немедленно уведомить аварийную бригаду для расчистки путей.'}
+            {objectType === 'obstacle' && '🚨 Проверить наличие постороннего предмета на путях.'}
+            {objectType === 'vehicle' && '🚨 Проверить наличие несанкционированного транспорта.'}
             {objectType === 'default' && 'Провести дополнительную проверку для идентификации объекта.'}
           </div>
         </div>
